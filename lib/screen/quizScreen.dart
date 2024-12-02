@@ -15,10 +15,11 @@ class QuizScreen extends StatefulWidget {
 class _QuizScreenState extends State<QuizScreen> {
   int currentQuestionIndex = 0;
   int totalQuestions = 10;
-  int _timeRemaining = 15;
+  int remaining_time = 15;
   Timer? _timer;
   List<dynamic> questions = [];
-  bool isLoading = true;
+  bool loading = true;
+  int right = 0; //answers
 
   @override
   void initState() {
@@ -33,13 +34,7 @@ class _QuizScreenState extends State<QuizScreen> {
   }
 
   Future<void> fetchQuestions() async {
-    final category = widget.args['category'];
-    final difficulty = widget.args['difficulty'];
-    final type = widget.args['type'];
-    final amount = widget.args['amount'];
-
-    final url = Uri.parse(
-        'https://opentdb.com/api.php?amount=$amount&category=$category&difficulty=$difficulty&type=$type');
+    final url = Uri.parse("https://opentdb.com/api.php?amount=10");
 
     try {
       final response = await http.get(url);
@@ -48,41 +43,42 @@ class _QuizScreenState extends State<QuizScreen> {
         setState(() {
           questions = data['results'];
           totalQuestions = questions.length;
-          isLoading = false;
-          startTimer(); 
+          loading = false;
+          startTimer();
         });
       } else {
         setState(() {
-    isLoading = false;
-    questions = [];
-  });
+          loading = false;
+          questions = [];
+        });
         throw Exception('Failed to load questions');
       }
     } catch (error) {
       print(error);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error. Do not show')),
+        SnackBar(content: Text('Error fetching questions.')),
       );
     }
   }
 
   void startTimer() {
+    _timer?.cancel(); // Cancel any previous timer
     const oneSec = Duration(seconds: 1);
     _timer = Timer.periodic(oneSec, (Timer timer) {
-      if (_timeRemaining < 1) {
+      if (remaining_time < 1) {
         setState(() {
           timer.cancel();
-          _showTimeUpMessage();
+          displayTimeUpMSG();
         });
       } else {
         setState(() {
-          _timeRemaining--;
+          remaining_time--;
         });
       }
     });
   }
 
-  void _showTimeUpMessage() {
+  void displayTimeUpMSG() {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Time’s up! Moving to the next question.')),
     );
@@ -90,7 +86,7 @@ class _QuizScreenState extends State<QuizScreen> {
     if (currentQuestionIndex < totalQuestions - 1) {
       setState(() {
         currentQuestionIndex++;
-        _timeRemaining = 15;
+        remaining_time = 15;
         startTimer();
       });
     } else {
@@ -101,7 +97,8 @@ class _QuizScreenState extends State<QuizScreen> {
 
   void displaySummary() {
     Navigator.pushNamed(context, '/summary', arguments: {
-      'score': currentQuestionIndex, // Placeholder for score
+      'right': right,
+      'totalQuestions': totalQuestions,
     });
   }
 
@@ -109,19 +106,19 @@ class _QuizScreenState extends State<QuizScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Quiz')),
-      body: isLoading
+      body: loading
           ? Center(child: CircularProgressIndicator())
           : Column(
               children: [
                 Padding(
                   padding: const EdgeInsets.all(10.0),
                   child: Text(
-                    '$_timeRemaining seconds remaining',
+                    '$remaining_time seconds remaining',
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                 ),
                 LinearProgressIndicator(
-                  value: currentQuestionIndex / totalQuestions,
+                  value: totalQuestions > 0 ? currentQuestionIndex / totalQuestions : 0.0,
                 ),
                 Expanded(
                   child: Center(
@@ -134,26 +131,37 @@ class _QuizScreenState extends State<QuizScreen> {
                     ),
                   ),
                 ),
-                ...questions.isNotEmpty
-                    ? (questions[currentQuestionIndex]['incorrect_answers'] as List<String>)
-                        .map(
-                          (answer) => ElevatedButton(
-                            onPressed: () {
-                              // Check answer logic here
-                              if (currentQuestionIndex < totalQuestions - 1) {
-                                setState(() {
-                                  currentQuestionIndex++;
-                                  _timeRemaining = 15;
-                                });
-                              } else {
-                                displaySummary();
-                              }
-                            },
-                            child: Text(answer),
-                          ),
-                        )
-                        .toList()
-                    : [],
+                Expanded(
+                  child: ListView(
+                    children: questions.isNotEmpty
+                        ? (questions[currentQuestionIndex]['incorrect_answers'] as List<dynamic>)
+                            .map((answer) => Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                                  child: ElevatedButton(
+                                    onPressed: () {
+                                      bool isCorrect = (answer ==
+                                          questions[currentQuestionIndex]['correct_answer']);
+                                      if (isCorrect) {
+                                        right++;
+                                      }
+
+                                      if (currentQuestionIndex < totalQuestions - 1) {
+                                        setState(() {
+                                          currentQuestionIndex++;
+                                          remaining_time = 15;
+                                          startTimer(); 
+                                        });
+                                      } else {
+                                        displaySummary();
+                                      }
+                                    },
+                                    child: Text(answer),
+                                  ),
+                                ))
+                            .toList()
+                        : [],
+                  ),
+                ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
@@ -162,18 +170,20 @@ class _QuizScreenState extends State<QuizScreen> {
                         if (currentQuestionIndex > 0) {
                           setState(() {
                             currentQuestionIndex--;
-                            _timeRemaining = 15;
+                            remaining_time = 15;
+                            startTimer(); // 
                           });
                         }
                       },
-                      child: Text('Previous'),
+                      child: Text('Prev'),
                     ),
                     ElevatedButton(
                       onPressed: () {
                         if (currentQuestionIndex < totalQuestions - 1) {
                           setState(() {
                             currentQuestionIndex++;
-                            _timeRemaining = 15;
+                            remaining_time = 15;
+                            startTimer(); 
                           });
                         } else {
                           displaySummary();

@@ -19,9 +19,6 @@ class MyApp extends StatelessWidget {
         '/setup': (context) => SetupScreen(),
         '/quiz': (context) => QuizScreen(args: {},),
         '/summary': (context) => SummaryScreen(
-              totalQuestions: 0, 
-              correctAnswers: 0,
-              quizResults: [],
             ),
       },
     );
