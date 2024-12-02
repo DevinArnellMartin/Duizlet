@@ -16,7 +16,7 @@ class _QuizScreenState extends State<QuizScreen> {
   int currentQuestionIndex = 0;
   int totalQuestions = 10;
   int remaining_time = 15;
-  Timer? _timer;
+  Timer? timer;
   List<dynamic> questions = [];
   bool loading = true;
   int right = 0; //answers
@@ -29,7 +29,7 @@ class _QuizScreenState extends State<QuizScreen> {
 
   @override
   void dispose() {
-    _timer?.cancel();
+    timer?.cancel();
     super.dispose();
   }
 
@@ -62,9 +62,9 @@ class _QuizScreenState extends State<QuizScreen> {
   }
 
   void startTimer() {
-    _timer?.cancel(); // Cancel any previous timer
+    timer?.cancel(); 
     const oneSec = Duration(seconds: 1);
-    _timer = Timer.periodic(oneSec, (Timer timer) {
+    timer = Timer.periodic(oneSec, (Timer timer) {
       if (remaining_time < 1) {
         setState(() {
           timer.cancel();
@@ -90,7 +90,7 @@ class _QuizScreenState extends State<QuizScreen> {
         startTimer();
       });
     } else {
-      _timer?.cancel();
+      timer?.cancel();
       displaySummary();
     }
   }

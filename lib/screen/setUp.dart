@@ -4,10 +4,10 @@ import 'dart:convert';
 
 class SetupScreen extends StatefulWidget {
   @override
-  _SetupScreenState createState() => _SetupScreenState();
+  SetupState createState() => SetupState();
 }
 
-class _SetupScreenState extends State<SetupScreen> {
+class SetupState extends State<SetupScreen> {
   String? selectedCategory;
   String? selectedDifficulty;
   String? selectedType;
@@ -95,7 +95,7 @@ class _SetupScreenState extends State<SetupScreen> {
                     items: ['multiple', 'boolean'].map((type) {
                       return DropdownMenuItem<String>(
                         value: type,
-                        child: Text(type == 'multiple' ? 'Multiple Choice' : 'True/False'),
+                        child: Text(type == 'multiple' ? 'Multiple Choice' : 'T/F'),
                       );
                     }).toList(),
                   ),
@@ -116,12 +116,9 @@ class _SetupScreenState extends State<SetupScreen> {
                   ),
 
                   SizedBox(height: 30),
-
-                  // Start Quiz Button
                   Center(
                     child: ElevatedButton(
                       onPressed: () {
-                        // Validate inputs before navigating
                         if (selectedCategory != null &&
                             selectedDifficulty != null &&
                             selectedType != null &&
@@ -138,7 +135,7 @@ class _SetupScreenState extends State<SetupScreen> {
                           );
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Please complete all selections')),
+                            SnackBar(content: Text('Must fill out all fields')),
                           );
                         }
                       },

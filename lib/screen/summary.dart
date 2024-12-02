@@ -29,7 +29,7 @@ class SummaryScreen extends StatelessWidget {
             Expanded(
               child: Center(
                 child: Text(
-                  'Thank you for taking the quiz!',
+                  'Acta est fabula! See how you did!',
                   style: TextStyle(fontSize: 20),
                   textAlign: TextAlign.center,
                 ),
